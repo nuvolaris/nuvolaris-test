@@ -1,14 +1,15 @@
 # nuvolaris-test
 
-In this repo there is are source of the test kit
+This is the testkit.
 
-Note that this repo does nothing by itself except building the test container used by other repos.
+It builds a container for testing.
 
-In order to develop with it, you have to get an AWS account, get the credentials, copy `.env.dist` to `.env`, edit it adding all the secrets.
+The container contains all the tools to build various Kubernetes clusters and test Nuvolaris in them.
 
-Then you can:
+TO use it:
 
-- `task build` to build the container
-- `task enter` to enter in the container accessing to the scripts in current directory
+- copy `.env.dist` in `.env` and fill it with the required secrets 
+- built the container with `task build`
+- enter in the container for development with `task enter`
 
-... more to come ...
+TODO: run it in a CI Environment

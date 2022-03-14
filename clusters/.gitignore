@@ -1,8 +1,5 @@
 # do not put this in public repos!
 .env
-id_rsa
-id_rsa.pub
-
 # Logs
 logs
 *.log

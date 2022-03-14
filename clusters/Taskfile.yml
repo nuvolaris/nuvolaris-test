@@ -1,0 +1,23 @@
+version: '3'
+  
+dotenv: ["../.env"]
+
+tasks:
+
+  default: true
+
+  setup:
+    cmds:
+      - ssh-keygen -b 2048 -t rsa -f config/id_rsa -q -N ""
+      - ssh-keygen  -y -f config/id_rsa >config/id_rsa.pub
+    status:
+      - test -f config/id_rsa.pub
+
+
+  list:
+    - task list -d linode
+    - task list -d eks
+
+  destroy:
+    - task destroy -d linode
+    - task destroy -d eks

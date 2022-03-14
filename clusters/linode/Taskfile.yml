@@ -1,0 +1,24 @@
+version: '3'
+
+dotenv: ['../../.env']
+
+tasks:
+
+   default: linode-cli lke {{.CLI_ARGS}}
+
+   create: >
+      linode-cli lke cluster-create \
+         --label=nuvolaris-cluster --region=eu-central \
+         --k8s_version=1.21 --node_pools.type=g6-standard-4 --node_pools.count=1
+
+   destroy: | 
+      ID=$(linode-cli lke clusters-list --json | jq '.[0].id')
+      linode-cli lke cluster-delete $ID
+
+
+   config: |
+      test -d ~/.kube || mkdir ~/.kube
+      ID=$(linode-cli lke clusters-list --json | jq '.[0].id')
+      linode-cli --json lke kubeconfig-view $ID | jq -r '.[].kubeconfig | @base64d' >~/.kube/linode.kubeconfig
+
+   list: linode-cli lke clusters-list

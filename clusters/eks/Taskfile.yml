@@ -1,0 +1,9 @@
+version: '3'
+
+tasks:
+
+  create: eksctl create cluster -f cluster.yml
+
+  destroy: eksctl delete cluster --name nuvolaris-cluster
+
+  list: eksctl get cluster
