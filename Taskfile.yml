@@ -13,13 +13,39 @@ tasks:
   default: > 
     docker run -ti --entrypoint=/usr/bin/bash
     --mount type=bind,source=$REAL_WORKDIR,target=/home/nuvolaris/nuvolaris-test
+    --workdir /home/nuvolaris/nuvolaris-test/clusters
     -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
     -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
     -e AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION
+    -e LINODE_CLI_TOKEN=$LINODE_CLI_TOKEN
     {{.REPO}}/{{.IMAGE}}:{{.TAG}}
 
-  setup: true
+  setup:
+    deps: [kind-kubeconfig, ssh-key]
+
+  kind-kubeconfig: 
+    cmds:
+      - kind get kubeconfig --name=nuvolaris > config/kind.kubeconfig
+    status:
+      - test -f config/kind.kubeconfig
+
+  ssh-key:
+    cmds:
+      - ssh-keygen -b 2048 -t rsa -f config/id_rsa -q -N ""
+      - ssh-keygen  -y -f config/id_rsa >config/id_rsa.pub
+    status:
+      - test -f config/id_rsa.pub
+
 
   build: docker build . -t {{.REPO}}/{{.IMAGE}}:{{.TAG}} 
 
   buildx-and-push: docker buildx build --platform linux/amd64,linux/arm64 -t {{.REPO}}/{{.IMAGE}}:{{.TAG}}  .devcontainer --push
+
+  config: |
+      kind get kubeconfig --name=nuvolaris > clusters/config/kubeconfig
+      KUBECONFIG=clusters/config/kubeconfig
+      for i in clusters/config/*.kubeconfig
+      do KUBECONFIG="$KUBECONFIG:$i"
+      done
+      export KUBECONFIG
+      kubectl config view  --flatten >~/.kube/config

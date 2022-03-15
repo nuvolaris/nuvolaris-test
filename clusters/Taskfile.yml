@@ -4,20 +4,22 @@ dotenv: ["../.env"]
 
 tasks:
 
-  default: true
+  default: task -a
 
-  setup:
-    cmds:
-      - ssh-keygen -b 2048 -t rsa -f config/id_rsa -q -N ""
-      - ssh-keygen  -y -f config/id_rsa >config/id_rsa.pub
-    status:
-      - test -f config/id_rsa.pub
+  setup: true
 
+  create:
+    - task create -d linode
+    - task create -d eks
+  
+  destroy:
+    - task destroy -d linode
+    - task destroy -d eks
 
   list:
     - task list -d linode
     - task list -d eks
 
-  destroy:
-    - task destroy -d linode
-    - task destroy -d eks
+  config:
+    - task config -d linode
+    - task config -d eks

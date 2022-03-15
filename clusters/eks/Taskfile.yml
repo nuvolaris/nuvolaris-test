@@ -7,3 +7,6 @@ tasks:
   destroy: eksctl delete cluster --name nuvolaris-cluster
 
   list: eksctl get cluster
+
+  config: |
+    aws eks update-kubeconfig --kubeconfig ../../config/eks.kubeconfig --name=nuvolaris-cluster

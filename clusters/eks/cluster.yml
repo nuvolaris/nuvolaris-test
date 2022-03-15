@@ -11,4 +11,4 @@ nodeGroups:
     desiredCapacity: 1
     volumeSize: 80
     ssh:
-      publicKeyPath: ../config/id_rsa.pub
+      publicKeyPath: ../../config/id_rsa.pub

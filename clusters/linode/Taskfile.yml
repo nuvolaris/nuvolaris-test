@@ -15,10 +15,12 @@ tasks:
       ID=$(linode-cli lke clusters-list --json | jq '.[0].id')
       linode-cli lke cluster-delete $ID
 
-
    config: |
       test -d ~/.kube || mkdir ~/.kube
       ID=$(linode-cli lke clusters-list --json | jq '.[0].id')
-      linode-cli --json lke kubeconfig-view $ID | jq -r '.[].kubeconfig | @base64d' >~/.kube/linode.kubeconfig
+      if test -n "$ID"
+      then linode-cli --json lke kubeconfig-view $ID | jq -r '.[].kubeconfig | @base64d' >../../config/linode.kubeconfig
+      else echo "cluster not yet ready"
+      fi
 
    list: linode-cli lke clusters-list
