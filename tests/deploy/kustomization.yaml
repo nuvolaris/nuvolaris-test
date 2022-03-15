@@ -2,7 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 images:
 - name: ghcr.io/nuvolaris/nuvolaris-operator
-  newTag: latest
+  newTag: neo-22.0207.21
 resources:
 - operator-crd.yaml
 - operator-roles.yaml

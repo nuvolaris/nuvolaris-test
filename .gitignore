@@ -1,5 +1,5 @@
-# do not put this in public repos!
 .env
 config/
 *.log
+node_modules/
 

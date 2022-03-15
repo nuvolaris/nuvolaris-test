@@ -21,13 +21,23 @@ tasks:
     {{.REPO}}/{{.IMAGE}}:{{.TAG}}
 
   setup:
-    deps: [kind-kubeconfig, ssh-key]
+    deps: [aws-cli, kind-kubeconfig, ssh-key]
 
   kind-kubeconfig: 
     cmds:
       - kind get kubeconfig --name=nuvolaris > config/kind.kubeconfig
     status:
       - test -f config/kind.kubeconfig
+
+  aws-cli: 
+    cmds: 
+      - |
+          curl -sL "https://awscli.amazonaws.com/awscli-exe-linux-$(arch).zip" -o "/tmp/awscliv2.zip" ;\
+          cd /tmp ; unzip awscliv2.zip ;\
+          sudo ./aws/install ;\
+          rm -Rvf aws
+    status: 
+      - which aws
 
   ssh-key:
     cmds:
@@ -36,16 +46,15 @@ tasks:
     status:
       - test -f config/id_rsa.pub
 
-
   build: docker build . -t {{.REPO}}/{{.IMAGE}}:{{.TAG}} 
 
   buildx-and-push: docker buildx build --platform linux/amd64,linux/arm64 -t {{.REPO}}/{{.IMAGE}}:{{.TAG}}  .devcontainer --push
 
   config: |
-      kind get kubeconfig --name=nuvolaris > clusters/config/kubeconfig
-      KUBECONFIG=clusters/config/kubeconfig
-      for i in clusters/config/*.kubeconfig
-      do KUBECONFIG="$KUBECONFIG:$i"
+      KUBECONFIG=""
+      for i in config/*.kubeconfig
+      do echo $i ; KUBECONFIG="$i:$KUBECONFIG"
       done
       export KUBECONFIG
+      test -d ~/.kube || mkdir ~/.kube
       kubectl config view  --flatten >~/.kube/config
