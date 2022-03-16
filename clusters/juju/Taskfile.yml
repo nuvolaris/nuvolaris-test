@@ -16,14 +16,10 @@
 # under the License.
 #
 version: '3'
-
 tasks:
 
-  create: eksctl create cluster -f cluster.yml
-
-  destroy: eksctl delete cluster --name nuvolaris-cluster
-
-  list: eksctl get cluster
-
-  config: |
-    aws eks update-kubeconfig --kubeconfig ../../config/eks.kubeconfig --name=nuvolaris-cluster
+  create:
+    - juju bootstrap aws --constraints arch=amd64
+    - juju list-controllers
+    - juju add-model aws
+    - juju deploy charmed-kubernetes
