@@ -37,24 +37,16 @@ tasks:
     -e LINODE_CLI_TOKEN=$LINODE_CLI_TOKEN
     {{.REPO}}/{{.IMAGE}}:{{.TAG}}
 
+  build: docker build . -t {{.REPO}}/{{.IMAGE}}:{{.TAG}} 
+
+  buildx-and-push: docker buildx build --platform linux/amd64,linux/arm64 -t {{.REPO}}/{{.IMAGE}}:{{.TAG}}  .devcontainer --push
+
   setup:
-    deps: [aws-cli, kind-kubeconfig, ssh-key]
+    deps: [kind-kubeconfig, ssh-key]
 
   kind-kubeconfig: 
     cmds:
       - kind get kubeconfig --name=nuvolaris > config/kind.kubeconfig
-    status:
-      - test -f config/kind.kubeconfig
-
-  aws-cli: 
-    cmds: 
-      - |
-          curl -sL "https://awscli.amazonaws.com/awscli-exe-linux-$(arch).zip" -o "/tmp/awscliv2.zip" ;\
-          cd /tmp ; unzip awscliv2.zip ;\
-          sudo ./aws/install ;\
-          rm -Rvf aws
-    status: 
-      - which aws
 
   ssh-key:
     cmds:
@@ -62,10 +54,6 @@ tasks:
       - ssh-keygen  -y -f config/id_rsa >config/id_rsa.pub
     status:
       - test -f config/id_rsa.pub
-
-  build: docker build . -t {{.REPO}}/{{.IMAGE}}:{{.TAG}} 
-
-  buildx-and-push: docker buildx build --platform linux/amd64,linux/arm64 -t {{.REPO}}/{{.IMAGE}}:{{.TAG}}  .devcontainer --push
 
   config: |
       KUBECONFIG=""
@@ -75,3 +63,18 @@ tasks:
       export KUBECONFIG
       test -d ~/.kube || mkdir ~/.kube
       kubectl config view  --flatten >~/.kube/config
+
+  use: |
+    if test -z "{{.CLI_ARGS}}"
+    then kubectl config view -o json | jq '.contexts | .[].name' -r  |  awk '{print NR, $0}'
+    else CTX=$(kubectl config view -o json | jq '.contexts | .[].name' -r | awk 'NR=={{.CLI_ARGS}} { print}')
+         kubectl config use-context "$CTX"
+         kubectl get nodes
+    fi
+
+
+  1: task use -- 1
+  2: task use -- 2
+  3: task use -- 3
+  4: task use -- 4
+  5: task use -- 5
