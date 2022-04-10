@@ -19,7 +19,7 @@ version: '3'
 vars:
   IMAGE: nuvolaris/nuvolaris-operator
   REPO: ghcr.io
-  TAG: 0.2.0-trinity.22041021
+  TAG: 0.2.0-trinity.22041022
   HOSTNAME:
     sh: hostname -f
   APIHOST: http://{{.HOSTNAME}}:3233
