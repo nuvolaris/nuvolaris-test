@@ -19,10 +19,10 @@ version: '3'
 vars:
   IMAGE: nuvolaris/nuvolaris-operator
   REPO: ghcr.io
-  TAG: neo-22.0207.21
+  TAG: 0.2.0-trinity.22041021
   HOSTNAME:
     sh: hostname -f
-  APIHOST: http://{{.HOSTNAME}}:8080
+  APIHOST: http://{{.HOSTNAME}}:3233
   GUEST: "23bc46b1-71f6-4ed5-8c54-816aa4f8c502:123zO3xZCLrMN6v2BKK1dXYFpXlPkccOFqm12CdAsMgRU4VrNZ9lyGVCGuMDGIwP"
 
 tasks:
@@ -36,7 +36,7 @@ tasks:
       - name: {{.REPO}}/{{.IMAGE}}
         newTag: {{.TAG}}
       resources:
-      - operator-crd.yaml
+      - nuvolaris-common.yaml
       - operator-roles.yaml
       - operator-pod.yaml
       __EOF__
@@ -46,15 +46,18 @@ tasks:
   - wsk action update hello hello.js
   - wsk action invoke hello -r
 
-  deploy:
+  deploy-operator:
   - task: kustomization
   - kubectl apply -k deploy
-  - kubectl config set-context --current --namespace nuvolaris
   - | 
     while ! kubectl -n nuvolaris wait --for=condition=ready pod/nuvolaris-operator
     do echo still waiting...
     done
-  - kubectl apply -f operator-obj-simple.yaml
+
+  deploy-instance:
+  - kubectl config set-context --current --namespace nuvolaris
+  - kubectl apply -f whisk.yaml
+
 
   enter: kubectl exec -ti nuvolaris-operator -- bash
 
@@ -66,7 +69,7 @@ tasks:
   create: kubectl apply -f operator-obj.yaml
   delete: kubectl delete -f operator-obj.yaml
   recreate:
-   - task: delete
-   - task: create
+    - task: delete
+    - task: create
 
 

@@ -17,11 +17,13 @@
 #
 version: '3'
 
+dotenv: ["../../.env"]
+
 tasks:
 
-  create: eksctl create cluster -f cluster.yml
+  create: eksctl create cluster -f cluster.yml 
 
-  destroy: eksctl delete cluster --name nuvolaris-cluster
+  destroy: eksctl delete cluster --name nuvolaris-cluster --region=eu-central-1
 
   list: eksctl get cluster
 
