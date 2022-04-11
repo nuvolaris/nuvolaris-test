@@ -43,11 +43,7 @@ tasks:
       - operator-pod.yaml
       __EOF__
 
-  wsk: 
-  - wsk property set --apihost http://localhost:3233 --auth '{{.GUEST}}'
-  - wsk action update hello hello.js
-  - wsk action invoke hello -r
-
+ 
   deploy-operator:
   - task: kustomization
   - kubectl apply -k deploy
