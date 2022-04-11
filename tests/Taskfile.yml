@@ -19,13 +19,15 @@ version: '3'
 vars:
   IMAGE: nuvolaris/nuvolaris-operator
   REPO: ghcr.io
-  TAG: 0.2.0-trinity.22041022
+  TAG: 0.2.0-trinity.22041023
   HOSTNAME:
     sh: hostname -f
   APIHOST: http://{{.HOSTNAME}}:3233
   GUEST: "23bc46b1-71f6-4ed5-8c54-816aa4f8c502:123zO3xZCLrMN6v2BKK1dXYFpXlPkccOFqm12CdAsMgRU4VrNZ9lyGVCGuMDGIwP"
 
 tasks:
+  current: kubectl config current-context
+
   kustomization:
     cmds:
     - |
@@ -58,7 +60,17 @@ tasks:
   - kubectl config set-context --current --namespace nuvolaris
   - kubectl apply -f whisk.yaml
 
-
+  config-wsk: |-
+    APIHOST=$(kubectl -n nuvolaris get cm/config -o yaml | awk '/apihost:/ {print $2}' | sed -e 's/https:/http:/')
+    echo $APIHOST
+    AUTH=$(cat whisk.yaml | awk '/nuvolaris:/{print $2}')
+    echo $AUTH
+    wsk property set --apihost $APIHOST --auth $AUTH
+  
+  test-wsk:
+    - wsk action update hello hello.js
+    - wsk action invoke hello -r
+  
   enter: kubectl exec -ti nuvolaris-operator -- bash
 
   destroy:
@@ -72,4 +84,21 @@ tasks:
     - task: delete
     - task: create
 
+  use: 
+    cmds: 
+      - |
+        if test -z "{{.CLI_ARGS}}"
+        then kubectl config view -o json | jq '.contexts | .[].name' -r  |  awk '{print NR, $0}'
+            echo current: "$(kubectl config current-context)"
+        else CTX=$(kubectl config view -o json | jq '.contexts | .[].name' -r | awk 'NR=={{.CLI_ARGS}} { print}')
+            kubectl config use-context "$CTX"
+            kubectl config set-context --current --namespace nuvolaris
+            kubectl get nodes
+        fi
+    silent: true
 
+  1: task use -- 1
+  2: task use -- 2
+  3: task use -- 3
+  4: task use -- 4
+  5: task use -- 5
