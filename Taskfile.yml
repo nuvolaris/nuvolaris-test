@@ -27,27 +27,6 @@ dotenv: [".env"]
 
 tasks:
 
-  default: > 
-    docker run -ti --entrypoint=/usr/bin/bash
-    --mount type=bind,source=$REAL_WORKDIR,target=/home/nuvolaris/nuvolaris-test
-    --workdir /home/nuvolaris/nuvolaris-test/clusters
-    -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-    -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-    -e AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION
-    -e LINODE_CLI_TOKEN=$LINODE_CLI_TOKEN
-    {{.REPO}}/{{.IMAGE}}:{{.TAG}}
-
-  build: docker build . -t {{.REPO}}/{{.IMAGE}}:{{.TAG}} 
-
-  buildx-and-push: docker buildx build --platform linux/amd64,linux/arm64 -t {{.REPO}}/{{.IMAGE}}:{{.TAG}}  .devcontainer --push
-
-  setup:
-    deps: [kind-kubeconfig, ssh-key]
-
-  kind-kubeconfig: 
-    cmds:
-      - kind get kubeconfig --name=nuvolaris > config/kind.kubeconfig
-
   ssh-key:
     cmds:
       - ssh-keygen -b 2048 -t rsa -f config/id_rsa -q -N ""
@@ -55,26 +34,14 @@ tasks:
     status:
       - test -f config/id_rsa.pub
 
-  config: |
-      KUBECONFIG=""
-      for i in config/*.kubeconfig
-      do echo $i ; KUBECONFIG="$i:$KUBECONFIG"
-      done
-      export KUBECONFIG
-      test -d ~/.kube || mkdir ~/.kube
-      kubectl config view  --flatten >~/.kube/config
+includes:
+  kind:  
+    taskfile: clusters/kind.yml
+    dir: clusters
+  eks:
+    taskfile: clusters/eks.yml
+    dir: clusters
+  lks:  
+    taskfile: clusters/lks.yaml
+    dir: clusters
 
-  use: |
-    if test -z "{{.CLI_ARGS}}"
-    then kubectl config view -o json | jq '.contexts | .[].name' -r  |  awk '{print NR, $0}'
-    else CTX=$(kubectl config view -o json | jq '.contexts | .[].name' -r | awk 'NR=={{.CLI_ARGS}} { print}')
-         kubectl config use-context "$CTX"
-         kubectl get nodes
-    fi
-
-
-  1: task use -- 1
-  2: task use -- 2
-  3: task use -- 3
-  4: task use -- 4
-  5: task use -- 5
